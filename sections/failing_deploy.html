@@ -6,7 +6,9 @@
 <li>Infrastructure provider failed to create VM or disk (e.g. quota exceeded, instance type is not available)</li>
 <li>Properties required by release were not provided in manifest</li>
 
-<p>Let's add another job to our manifest <b>router</b> (it will redirect all requests between servers). Note, that since uploaded release already contains this job, we don't need to update release.</p>
+<p>Let's add another job to our manifest and call it <b>router</b>. It will balance requests between the app servers in a round-robin fashion. Since the uploaded release already contains the router job, we don't need to update the release.</p>
+
+<p>To do this, we'll create a new instance group and give it the <b>router</b> job. Add the following text to the bottom of <b>manifest.yml</b>:</p>
 
 <div class="terminal-block">
   <h4 class="terminal-printout-text">- name: router
@@ -22,7 +24,7 @@
     static_ips: [10.0.0.12]</h4>
 </div>
 
-<p>Re-deploy with new job.</p>
+<p>Re-deploy with the new job.</p>
 
 <div class="terminal-block">
   <h4 class="terminal-code-text">$ bosh -d learn-bosh-on-gcp deploy manifest.yml</h4>
@@ -30,15 +32,15 @@
   </h4>
 </div>
 
-<p>Oh-oh, looks like deploy failed. Let's get our service logs, untar them and check stderr log.</p>
+<p>Oh-oh, looks like the deployment failed. Let's get our service logs, untar them and check stderr log.</p>
 
 <div class="terminal-block">
   <h4 class="terminal-code-text">$ bosh -d learn-bosh-on-gcp logs router/0</h4>
 </div>
 
-<p>We should find this error: "At least one server must be provided". Router fails to route because there is no servers specified.</p>
+<p>We should find this error: "At least one server must be provided". The router fails to route because there are no servers specified.</p>
 
-<p>Let's add a property to router job to specify our servers pointing to their static IPs and ports.</p>
+<p>Let's add a property to the router job to specify our servers pointing to their static IPs and ports.</p>
 
 <div class="terminal-block">
   <h4 class="terminal-printout-text">- name: router
@@ -56,6 +58,6 @@
     servers: ["http://10.0.0.10:8888", "http://10.0.0.11:8888"]</h4>
 </div>
 
-<p>Re-deploy and see it succeeds.</p>
+<p>Re-deploy and see that it now succeeds.</p>
 
 <p>Now running <b>curl -L http://10.0.0.12:8080</b> should give us responses from different servers.</p>
